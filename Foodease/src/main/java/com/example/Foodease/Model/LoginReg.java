@@ -23,19 +23,31 @@ public class LoginReg {
         @SequenceGenerator(name = "ID", sequenceName = "Reg_Id",allocationSize = 1)
         public int id;
 
-        @Enumerated(EnumType.STRING)
-        private UserRole role;
+        //@Enumerated(EnumType.STRING)
+        //private UserRole role;
 
-        public UserRole getRole() {
-                return role;
-        }
+        //public UserRole getRole() {
+        //        return role;
+       // }
 
-        public void setRole(UserRole role) {
-                this.role = role;
-        }
+       // public void setRole(UserRole role) {
+       //         this.role = role;
+       // }
 
+        //@NonNull
+       // public int userId;
         @NonNull
-        public int userId;
+        @ManyToOne
+        @JoinColumn(name = "USERTYPE_ID") // References the USER_ID column in the USER table
+        public UserType userType;
+
+        public UserType getUser() {
+                return userType;
+        }
+
+        public void setUser(UserType userType) {
+                this.userType = userType;
+        }
 
         @NotBlank(message = "Username cannot be blank")
         @Size(max = 300)
@@ -104,13 +116,13 @@ public class LoginReg {
                 this.name = name;
         }
 
-        public int getUserId() {
-                return userId;
-        }
+        //public int getUserId() {
+        //        return userId;
+       // }
 
-        public void setUserId(int userId) {
-                this.userId = userId;
-        }
+        //public void setUserId(int userId) {
+        //        this.userId = userId;
+        //}
 
         public int getId() {
                 return id;

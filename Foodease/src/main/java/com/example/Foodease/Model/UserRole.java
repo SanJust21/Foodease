@@ -4,5 +4,6 @@ public enum UserRole {
 
     ADMIN,
     CUSTOMER,
-    RESTAURANT
+    RESTAURANT,
+    DELIVERY
 }

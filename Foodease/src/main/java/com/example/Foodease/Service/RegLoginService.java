@@ -10,8 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 
+//import org.springframework.mail.SimpleMailMessage;
+//import org.springframework.mail.javamail.JavaMailSender;
+
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +24,9 @@ public class RegLoginService {
 
     @Autowired
     RegLoginRepo regLoginRepo;
+
+    //@Autowired
+    //JavaMailSender javaMailSender;
 
     public List<LoginReg> getRegDetails() {
         return regLoginRepo.findAll();
@@ -31,13 +38,25 @@ public class RegLoginService {
         loginReg.setPassword(encryptedPwd);
         Optional<LoginReg> exsistuser = regLoginRepo.findByPhoneNo(loginReg.getPhoneNo());
         if (exsistuser.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User with the provided phone number already exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User with the provided phone number already exists. Login to proceed.");
         }
 
         LoginReg savedUser = regLoginRepo.save(loginReg);
+
+        //sendRegistrationEmail(savedUser.getEmail());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser.getName() + " successfully registered!");
 
     }
+
+//        private void sendRegistrationEmail(String userEmail) {
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setTo(userEmail);
+//        message.setSubject("Welcome to FoodEase!");
+//        message.setText("Thank you for registering with FoodEase! We are glad to have you on board.");
+//
+//        javaMailSender.send(message);
+//    }
 
 
     //public ResponseEntity<String> login(LoginReg loginReg) {
@@ -53,17 +72,26 @@ public class RegLoginService {
                     loginpass.setLastTimeIn(LocalDateTime.now());
                     regLoginRepo.save(loginpass);
 
+                    UserRole userRole = loginReg.getUser().getRoleName();
+
                     details.setPhoneNo(loginpass.getPhoneNo());
                     details.setName(loginpass.getName());
                     details.setLocation(loginpass.getLocation());
-                    details.setRole(loginpass.getRole());
+                    //details.setRole(loginpass.getRole());
 
-                    if (UserRole.ADMIN.equals(loginpass.getRole())) {
+                    details.setRole(userRole);
+
+                    //if (UserRole.ADMIN.equals(loginpass.getRole()))
+                        if (UserRole.ADMIN.equals(userRole)){
                         details.setRedirectUrl("/admin/dashboard");
-                    } else if(UserRole.CUSTOMER.equals(loginpass.getRole())){
+                    } //else if(UserRole.CUSTOMER.equals(loginpass.getRole()))
+                    else if(UserRole.CUSTOMER.equals(userRole)){
                         details.setRedirectUrl("/customer/dashboard");
-                    } else
+                    } //else if(UserRole.RESTAURANT.equals(loginpass.getRole()))
+                    else if(UserRole.RESTAURANT.equals(userRole)){
                         details.setRedirectUrl("/restaurant/dashboard");
+                    }else
+                        details.setRedirectUrl("/delivery/dashboard");
 
                     return ResponseEntity.ok().body(details);
 //
@@ -81,13 +109,15 @@ public class RegLoginService {
 //                return ResponseEntity.ok(response);
 //
 
-                } else throw new UserNotFoundException("Incorrect password");
+                } else throw new UserNotFoundException(HttpStatus.UNAUTHORIZED,"Incorrect password");
                 //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect Password");
 
                 // } else return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
                 //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
             }
-            throw new UserNotFoundException("No user found for this phone number!");
+            throw new UserNotFoundException(HttpStatus.UNAUTHORIZED,"No user found for this phone number!");
         }
+
+
 }
 
