@@ -1,10 +1,7 @@
 package com.example.Foodease.DTO;
 
 
-import com.example.Foodease.Model.UserRole;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -32,20 +29,30 @@ public class LoginDetails {
         this.redirectUrl = redirectUrl;
     }
 
+    public boolean isTerms() {
+        return terms;
+    }
+
+    public void setTerms(boolean terms) {
+        this.terms = terms;
+    }
+
     public String redirectUrl;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    public boolean terms;
+
+//    @Enumerated(EnumType.STRING)
+//    private UserRole role;
 
 
-    public UserRole getRole() {
-        return role;
-    }
-
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
+//    public UserRole getRole() {
+//        return role;
+//    }
+//
+//
+//    public void setRole(UserRole role) {
+//        this.role = role;
+//    }
 
     public String getLocation() {
         return location;

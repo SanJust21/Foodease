@@ -1,11 +1,11 @@
 package com.example.Foodease.Model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.NonNull;
 
 import java.time.LocalDateTime;
 
@@ -23,29 +23,39 @@ public class LoginReg {
         @SequenceGenerator(name = "ID", sequenceName = "Reg_Id",allocationSize = 1)
         public int id;
 
-        //@Enumerated(EnumType.STRING)
-        //private UserRole role;
+//        @Enumerated(EnumType.STRING)
+//        private UserRole role;
+//
+//        public UserRole getRole() {
+//                return role;
+//        }
+//
+//        public void setRole(UserRole role) {
+//                this.role = role;
+//        }
 
-        //public UserRole getRole() {
-        //        return role;
-       // }
 
-       // public void setRole(UserRole role) {
-       //         this.role = role;
-       // }
-
-        //@NonNull
-       // public int userId;
-        @NonNull
-        @ManyToOne
-        @JoinColumn(name = "USERTYPE_ID") // References the USER_ID column in the USER table
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "USERTYPE_ID") // References the USER_ID column in the USERTYPE table
+        @JsonProperty("userType")
         public UserType userType;
 
-        public UserType getUser() {
+        public String getUsertypeString() {
+                return usertypeString;
+        }
+
+        public void setUsertypeString(String usertypeString) {
+                this.usertypeString = usertypeString;
+        }
+
+        @Transient
+        private String usertypeString; // This field is used for JSON input
+
+        public UserType getUserType() {
                 return userType;
         }
 
-        public void setUser(UserType userType) {
+        public void setUserType(UserType userType) {
                 this.userType = userType;
         }
 
@@ -69,11 +79,22 @@ public class LoginReg {
         //@Pattern(regexp = "^[A-Za-z\\d]{8,}$", message = "Password must be at least 8 characters long and contain letters and numbers")
         public String password;
 
+        @Column(name = "terms")
+        public boolean terms;
+
+        public boolean isTerms() {
+                return terms;
+        }
+
+        public void setTerms(boolean terms) {
+                this.terms = terms;
+        }
 
         public LocalDateTime lastTimeIn;
 
         public LoginReg() {
                 this.lastTimeIn = LocalDateTime.now();
+                this.userType = new UserType(); // Initialize UserType to avoid null
         }
 
         public String getLocation() {
@@ -116,13 +137,6 @@ public class LoginReg {
                 this.name = name;
         }
 
-        //public int getUserId() {
-        //        return userId;
-       // }
-
-        //public void setUserId(int userId) {
-        //        this.userId = userId;
-        //}
 
         public int getId() {
                 return id;
@@ -130,5 +144,8 @@ public class LoginReg {
 
         public void setId(int id) {
                 this.id = id;
+        }
+
+        public void setUserType(int userTypeId) {
         }
 }
