@@ -2,11 +2,13 @@ package com.example.Foodease.Service;
 
 import com.example.Foodease.DTO.LoginDetails;
 import com.example.Foodease.Exception.UserNotFoundException;
+import com.example.Foodease.Exception.UserProfileUpdateException;
 import com.example.Foodease.Model.LoginReg;
 import com.example.Foodease.Model.UserType;
 import com.example.Foodease.Repository.RegLoginRepo;
 import com.example.Foodease.Repository.UserTypeRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,7 +34,7 @@ public class RegLoginService {
         return regLoginRepo.findAll();
     }
 
-    public ResponseEntity<String> regUser(LoginReg loginReg) {
+    public ResponseEntity<Object> regUser(LoginReg loginReg) {
         BCryptPasswordEncoder bCrypt = new BCryptPasswordEncoder();
         String encryptedPwd = bCrypt.encode(loginReg.getPassword());
         loginReg.setPassword(encryptedPwd);
@@ -43,7 +45,9 @@ public class RegLoginService {
         UserType userType;
         // Check if usertypeString is provided and use it to find UserType
         if (loginReg.getUsertypeString() != null) {
+        //if(loginReg.getUserTypeId()! = null){
             userType = userTypeRepo.findByRoleName(loginReg.getUsertypeString());
+            //userType = userTypeRepo.findById(loginReg.getUserTypeId());
 
             //userType = userTypeRepo.findByRoleName(loginReg.getUserType().getRoleName());
             if (userType == null) {
@@ -55,9 +59,10 @@ public class RegLoginService {
 
         //sendRegistrationEmail(savedUser.getEmail());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser.getName() + " successfully registered!");
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser.getName()+ " is successfully registered!");
 
     }
+
 //To send mail after registration
 //        private void sendRegistrationEmail(String userEmail) {
 //        SimpleMailMessage message = new SimpleMailMessage();
@@ -68,6 +73,8 @@ public class RegLoginService {
 //        javaMailSender.send(message);
 //    }
 
+//To get all usertypes in registration page
+//
 
     //public ResponseEntity<String> login(LoginReg loginReg) {
     public ResponseEntity<LoginDetails> login(LoginReg loginReg) throws UserNotFoundException {
@@ -82,7 +89,7 @@ public class RegLoginService {
                 loginpass.setLastTimeIn(LocalDateTime.now());
                 regLoginRepo.save(loginpass);
 
-
+                details.setUserId(loginpass.getId());
                 details.setPhoneNo(loginpass.getPhoneNo());
                 details.setName(loginpass.getName());
                 details.setLocation(loginpass.getLocation());
@@ -115,7 +122,7 @@ public class RegLoginService {
 //                        .setSubject(loginpass.getPhoneNo()) // Use the user's phone number as the subject of the token
 //                        .setIssuedAt(new Date())
 //                        .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // Token expires in 24 hours
-//                        .signWith(SignatureAlgorithm.HS512, "yourSecretKey") // Use your secret key to sign the token
+//                        .signWith(SignatureAlgorithm.HS512, "tst123") // Use your secret key to sign the token
 //                        .compact();
 
 //                Map<String, String> response = new HashMap<>();
@@ -131,7 +138,7 @@ public class RegLoginService {
             // } else return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
             //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
         }
-        throw new UserNotFoundException(HttpStatus.UNAUTHORIZED, "No user found for this phone number!");
+        throw new UserNotFoundException(HttpStatus.NOT_FOUND, "No user found for this phone number!");
     }
 
     private String determineRedirectUrl(String role) {
@@ -146,6 +153,52 @@ public class RegLoginService {
                 return "/delivery/dashboard";
             default:
                 return "/";
+        }
+    }
+
+    public ResponseEntity<LoginReg> updateProfile(LoginReg loginReg) throws UserProfileUpdateException {
+        try {
+            if (loginReg == null || loginReg.getPhoneNo() == null || loginReg.getPassword() == null) {
+                throw new IllegalArgumentException("Invalid input data");
+            }
+
+            Optional<LoginReg> existUser = regLoginRepo.findByPhoneNo(loginReg.getPhoneNo());
+
+            BCryptPasswordEncoder bCryptUp = new BCryptPasswordEncoder();
+
+            if (existUser.isPresent()) {
+
+                LoginReg updateDetails = existUser.get();
+
+                updateDetails.setName(loginReg.getName());
+                updateDetails.setPhoneNo(loginReg.getPhoneNo());
+                updateDetails.setLocation(loginReg.getLocation());
+                updateDetails.setUsertypeString(loginReg.getUsertypeString());
+                //updateDetails.setUserTypeId(loginReg.getUserTypeId());
+                //updateDetails.setTerms(loginReg.isTerms());
+
+                String updatedPwd = bCryptUp.encode(loginReg.getPassword());
+                updateDetails.setPassword(updatedPwd);
+
+                UserType userType;
+                if (loginReg.getUsertypeString() != null) {
+                    userType = userTypeRepo.findByRoleName(loginReg.getUsertypeString());
+
+                    updateDetails.setUserType(userType);
+                }
+
+                updateDetails.setLastTimeIn(LocalDateTime.now());
+
+                regLoginRepo.save(updateDetails);
+
+                return ResponseEntity.ok().body(updateDetails);
+
+            } else {
+                throw new UserProfileUpdateException(HttpStatus.NOT_FOUND, "User details not found for phone number: " + loginReg.getPhoneNo());
+            }
+
+        } catch (IllegalArgumentException | DataAccessException e) {
+            throw new UserProfileUpdateException(HttpStatus.INTERNAL_SERVER_ERROR, "Error updating user profile for phone number: " + loginReg.getPhoneNo(), e);
         }
     }
 }

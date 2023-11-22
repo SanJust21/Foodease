@@ -21,6 +21,16 @@ public class LoginDetails {
     @Size(max = 300)
     public String name;
 
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public int userId;
+
     public String getRedirectUrl() {
         return redirectUrl;
     }
