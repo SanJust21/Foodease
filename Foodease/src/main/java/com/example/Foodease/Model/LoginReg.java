@@ -51,6 +51,17 @@ public class LoginReg {
         @Transient
         private String usertypeString; // This field is used for JSON input
 
+        public int getUserTypeId() {
+                return userTypeId;
+        }
+
+        public void setUserTypeId(int userTypeId) {
+                this.userTypeId = userTypeId;
+        }
+
+        @Transient
+        private int userTypeId; // This field is used for JSON input
+
         public UserType getUserType() {
                 return userType;
         }
